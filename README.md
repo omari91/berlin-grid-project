@@ -1,6 +1,7 @@
 # Berlin Grid Digital Twin: From Simulation to Reality ⚡
 
 **A Python engineering project demonstrating the shift from "Copper" to "Code" in the German Energy Transition.**
+Compliant with VDE-AR-N 4110 & §14a EnWG Dimming Logic.
 
 [](https://www.python.org/)
 [](https://www.google.com/search?q=)
