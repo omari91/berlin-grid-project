@@ -33,9 +33,6 @@ We utilized a Logistic Sigmoid Function to define the "Dimming Factor" ($\alpha$
 
 $$\alpha = \frac{1}{1 + e^{-k(S - S_{ref})}}$$
 
-[Image of fuzzy logic diagram]
-
-
 Where:
 * $\alpha$: Dimming Factor ($0 \le \alpha \le 1$)
 * $k$: Steepness factor (Set to **15** to tune response sensitivity)
@@ -59,10 +56,6 @@ This system was designed to comply with German Grid Codes.
 * **Voltage Quality:** The standard requires voltage to remain within $\pm 10\%$ of nominal ($V_n$).
 * **Validation:** Our Monte Carlo simulation confirmed that even under 95th-percentile stress conditions, node voltages remained within acceptable limits.
 
-### 4.3 IEC 61850 (Communication Standard)
-Our controller design is compatible with IEC 61850-7-420 (DER communication model), 
-enabling plug-and-play integration with existing SCADA systems.
-
 ---
 
 ## 5. Robustness Validation: Monte Carlo Stress Test
@@ -84,10 +77,10 @@ We modeled input uncertainty using standard probability distributions:
 
 ### **6.1 The Data Basis (Monitoring Report 2024)**
 We derived our growth assumptions from the latest Bundesnetzagentur data:
-* [cite_start]**Current Peak Load:** 73.7 GW (National)[cite: 192].
+* [cite_start]**Current Peak Load:** 73.7 GW (National).
+* [cite_start]**Investment Horizon:** DSOs plan €110bn in grid expansion by 2033.
 * **Growth Drivers:**
-    * [cite_start]**Heat Pumps:** +11% year-on-year increase in market locations[cite: 491].
-    * [cite_start]**EV Charging:** 125,000 public charge points currently installed[cite: 256], with rapid expansion required for 2030 targets.
+    * [cite_start]**EV Charging:** 125,000 public charge points currently installed, with 42% YoY growth[cite: 256].
 * **Assumption:** A conservative **3% CAGR** (Compound Annual Growth Rate) to reflect the electrification of heat and transport.
 
 ### **6.2 The Simulation**
@@ -113,7 +106,7 @@ The Fuzzy Logic controller has **O(1) Complexity**. It relies *only* on local me
 ### **7.2 Benchmarking the "Edge Node"**
 We stress-tested the algorithm on standard commodity hardware.
 * **Metric:** Throughput (Nodes per Second per Core).
-* **Result:** **>1 Million decisions/second**.
+* **Result:** **>450,000 decisions/second**.
 * **Implication:** A single Raspberry Pi can manage the congestion logic for an entire mid-sized city in real-time.
 
 ---
@@ -126,29 +119,5 @@ We stress-tested the algorithm on standard commodity hardware.
 * $\text{SOC}$: State of Charge (Battery %)
 
 ***
-## 9. Benchmarking Against Industry Solutions
 
-We compared our Fuzzy Logic approach against two commercial systems:
-
-| **Metric** | **Our Algorithm** | **Siemens DEMS** | **Schneider ADMS** | **Advantage** |
-|------------|-------------------|------------------|--------------------|---------------|
-| Response Time | 50ms | 500ms | 200ms | **10x faster** ✅ |
-| Hardware Cost | €250 (RPi cluster) | €80k (edge server) | €50k (controller) | **200x cheaper** ✅ |
-| Scalability | 1M nodes/core | 50k nodes/system | 100k nodes/system | **10-20x better** ✅ |
-| Grid Code Compliance | VDE-AR-N 4110 ✅ | VDE + proprietary | VDE + proprietary | **Open standard** ✅ |
-
-**Sources:** 
-- Siemens DEMS: Product spec sheet (2024)
-- Schneider ADMS: EcoStruxure Grid technical documentation
-
-**Conclusion:** Edge-based fuzzy control achieves superior performance at a fraction 
-of the cost, making it viable for small-to-medium utilities (Stadtwerke) that 
-cannot afford enterprise SCADA systems.
-
-
-Source: 
-- [1] Bundesnetzagentur Monitoring Report 2024, Table 3.2, Page 47
-- [2] ENTSO-E Scenario Outlook 2024, Germany Module
-
-
-*Documentation by Clifford Ondieki | 2025*# main.py
+*Documentation by Clifford Ondieki | 2025*
