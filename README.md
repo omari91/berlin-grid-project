@@ -63,6 +63,8 @@ berlin-grid-project/
 └── README.md
 ```
 
+**Note:** The root `main.py` contains the original working analysis script. The `src/` directory provides a refactored, enterprise-grade modular version with CI/CD pipeline.
+
 ---
 
 ## Licensing
