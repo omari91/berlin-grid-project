@@ -1,0 +1,11 @@
+pydantic>=1.10
+pandas>=1.5
+numpy>=1.23
+matplotlib
+seaborn
+pandapower>=2.6
+pytest
+python-dotenv
+click
+rich
+pyyaml
