@@ -1,0 +1,9 @@
+site_name: Berlin Grid Digital Twin
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Run Guide: run.md
+  - API: api.md
