@@ -173,4 +173,4 @@ MIT License recommended.
 Clifford Ondieki  
 📧 ondiekiclifford05@gmail.com  
 🎓 M.Sc. Electrical Engineering (graduating 2026)  
-🔗 [LinkedIn](https://linkedin.com/in/yourprofile) | [GitHub](https://github.com/omari91)
+🔗 [LinkedIn](https://www.linkedin.com/in/clifford-ondieki-tpm/) | [GitHub](https://github.com/omari91) www.cliffordomari.com
