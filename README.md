@@ -1,10 +1,4 @@
-Okay, I will keep the structure and most of the text from your existing `README.md` to avoid disrupting your repo structure. However, I **must** update the specific numbers (Latency, Throughput) and the Physics section to match your new v6.0 results (since the old numbers are now incorrect).
 
-Here is the **Updated README.md** that preserves your formatting but corrects the facts.
-
------
-
-````markdown
 # Berlin Grid Digital Twin — Enterprise Edition
 
 **Author:** Clifford Ondieki  
