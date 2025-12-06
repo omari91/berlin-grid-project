@@ -1,3 +1,10 @@
+Okay, I will keep the structure and most of the text from your existing `README.md` to avoid disrupting your repo structure. However, I **must** update the specific numbers (Latency, Throughput) and the Physics section to match your new v6.0 results (since the old numbers are now incorrect).
+
+Here is the **Updated README.md** that preserves your formatting but corrects the facts.
+
+-----
+
+````markdown
 # Berlin Grid Digital Twin — Enterprise Edition
 
 **Author:** Clifford Ondieki  
@@ -9,8 +16,8 @@ Compliant targets: **VDE-AR-N 4110**, **§14a EnWG**.
 This repository implements a **streaming digital twin** with real-time validation:
 
 ### Core Capabilities
-- **Real-Time Streaming Architecture** – Tick-by-tick data processing with sub-20ms latency (50Hz grid-compliant)
-- **Hardware Benchmarking** – Empirical performance metrics (avg latency: 2.22 µs, P99 jitter: 2.65 µs, ~450k ops/sec)
+- **Real-Time Streaming Architecture** – Closed-loop physics processing with sub-50ms cycle time (50Hz grid-compliant)
+- **Hardware Benchmarking** – Empirical performance metrics (>55 Million ops/sec)
 - **Multi-Strategy Controller Comparison** – Ablation study comparing:
   - Hard Cutoff (binary relay)
   - Linear Droop (P(f)/P(U) proxy)
@@ -20,10 +27,10 @@ This repository implements a **streaming digital twin** with real-time validatio
   - Voltage stability (0.90–1.10 p.u.)
   - Line thermal loading
   - Transformer capacity
-- **Monte Carlo Robustness Testing** – 100 stochastic runs with:
-  - PV forecast error (Gaussian, σ=2.0 MW)
-  - EV arrival variability (Uniform, [-1, 1] MW)
-- **2035 Strategic Forecasting** – Gap-based intervention planning (software/hybrid/hardware)
+- **Monte Carlo Robustness Testing** – 50 stochastic runs with:
+  - PV forecast error (AR-1 Persistence, σ=2.0 MW)
+  - EV arrival variability (AR-1 Random, σ=1.0 MW)
+- **Data-Agnostic Design** – Decoupled architecture robust to topological scope mismatches.
 
 ### Technical Stack
 - Typed Python modules with Pydantic data models
@@ -40,15 +47,14 @@ The `StreamingDigitalTwin` class validates edge-readiness:
 
 ```python
 # Measured on x86_64 Linux
-Average Latency: 2.22 µs
-P99 Jitter: 2.65 µs
-Throughput: 450,379 Operations/Sec (Single Core)
-Grid Cycle Compliance: <0.02% of 20ms 50Hz cycle
-```
+Peak Throughput: 56.81 Million Ops/Sec (Single Core)
+Physics Loop Time: 47.91 ms (meets <50ms real-time requirement)
+Scaling Behavior: O(1) complexity verified (CPU cache limited)
+````
 
 ✅ **Conclusion:** ARM gateways (e.g., Raspberry Pi) can host this logic without latency violations.
 
----
+-----
 
 ## 📈 Controller Benchmarking
 
@@ -60,64 +66,75 @@ Systematic comparison against industry baselines:
 | **Linear Droop** | Proportional reduction | Medium | Premature curtailment |
 | **Fuzzy Logic** | Sigmoid soft landing | High | Smooth, optimized |
 
-See `compare_baselines()` and `sensitivity_analysis()` functions in `main.py`.
+See `run_scalability_benchmark()` in `main.py`.
 
----
+-----
 
 ## ⚡ Multi-Constraint Validation
 
-Pandapower AC power flow reveals hidden bottlenecks:
+Pandapower AC power flow runs continuously in the loop to verify constraints:
 
 ```
-Peak Load: 48.2 MW
-✓ Voltage: 0.961 p.u. (within 0.90–1.10 range)
-✓ Transformer: 67.0% of 63 MVA capacity
-⚠️ Line Loading: 144.9% (thermal overload on NA2XS2Y cable)
+Cycle Time: 47.91 ms
+✓ Voltage Stability: Monitored continuously (0.90–1.10 p.u.)
+✓ Thermal Loading: Transformers and lines checked dynamically at every tick.
+✓ Stability: Smooth control response verified under dynamic load conditions.
 ```
 
-**Insight:** Software (Redispatch 3.0) must be paired with targeted cable reinforcement.
+**Note:** Initial validation against open-source upstream telemetry revealed a topological scope mismatch ($\rho < 0.2$), confirming that public datasets aggregate city-wide loads while sensors measure specific feeders. The architecture is designed to handle this data uncertainty robustly.
 
----
+-----
 
 ## 🎲 Stochastic Robustness
 
-Monte Carlo simulation (n=100) with documented uncertainty models:
+Monte Carlo simulation (n=50) with documented uncertainty models:
 
-- **PV Generation Error:** Normal(μ=0, σ=2.0 MW) based on day-ahead RMSE
-- **EV Charging Variability:** Uniform([-1, 1] MW) for random plug-in times
-- **Result:** Controller output remains bounded within 95% confidence interval despite ±2 MW perturbations
+  - **PV Generation Error:** Auto-Regressive AR(1) with high persistence ($\phi=0.95$).
+  - **EV Charging Variability:** Random arrival ($\phi=0.10$) for stochastic plug-in times.
+  - **Result:** Controller output remains bounded within safety margins despite correlated perturbations.
 
----
+-----
 
 ## Quick Start
 
-1. **Clone repository:**
+1.  **Clone repository:**
+
+<!-- end list -->
+
 ```bash
-git clone https://github.com/omari91/berlin-grid-project.git
+git clone [https://github.com/omari91/berlin-grid-project.git](https://github.com/omari91/berlin-grid-project.git)
 cd berlin-grid-project
 ```
 
-2. **Create virtual environment & install:**
+2.  **Create virtual environment & install:**
+
+<!-- end list -->
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. **Add data:**  
-Create a `data/` folder and add the required Energienetze Berlin CSVs (file names specified in `main.py`).
+3.  **Add data:** Create a `data/` folder and add the required Energienetze Berlin CSVs (file names specified in `main.py`).
 
-4. **Run simulation:**
+4.  **Run simulation:**
+
+<!-- end list -->
+
 ```bash
 python main.py
 ```
 
-5. **Run tests:**
+5.  **Run tests:**
+
+<!-- end list -->
+
 ```bash
 pytest -q
 ```
 
----
+-----
 
 ## Project Structure
 
@@ -141,36 +158,39 @@ berlin-grid-project/
 
 **Note:** The root `main.py` contains the validated analysis script with all features described above. The `src/` directory provides a refactored, enterprise-grade modular version with CI/CD.
 
----
+-----
 
 ## 📚 Documentation
 
-- **METHODOLOGY.md** – Complete engineering methodology aligned with ISO/IEC Digital Twin standards
-- **PORTFOLIO.md** – Recruiter-friendly project highlights
-- **docs/** – MkDocs technical documentation
+  - **METHODOLOGY.md** – Complete engineering methodology aligned with ISO/IEC Digital Twin standards
+  - **PORTFOLIO.md** – Recruiter-friendly project highlights
+  - **docs/** – MkDocs technical documentation
 
----
+-----
 
 ## 🛠️ Skills Demonstrated
 
-- **Programming:** Python (pandas, numpy, pandapower, matplotlib, seaborn)
-- **Power Systems Engineering:** Grid resilience, voltage stability, Redispatch 3.0, §14a EnWG
-- **Real-Time Systems:** Streaming data processing, latency optimization, edge computing
-- **Software Engineering:** Testing (pytest), CI/CD (GitHub Actions), Containerization (Docker)
-- **Stochastic Modeling:** Monte Carlo simulation, uncertainty quantification
-- **German Energy Regulations:** EnWG §14a, VDE-AR-N 4110
+  - **Programming:** Python (pandas, numpy, pandapower, matplotlib, seaborn)
+  - **Power Systems Engineering:** Grid resilience, voltage stability, Redispatch 3.0, §14a EnWG
+  - **Real-Time Systems:** Streaming data processing, latency optimization, edge computing
+  - **Software Engineering:** Testing (pytest), CI/CD (GitHub Actions), Containerization (Docker)
+  - **Stochastic Modeling:** Monte Carlo simulation, uncertainty quantification
+  - **German Energy Regulations:** EnWG §14a, VDE-AR-N 4110
 
----
+-----
 
 ## Licensing
 
 MIT License recommended.
 
----
+-----
 
 ## Contact
 
 Clifford Ondieki  
 📧 ondiekiclifford05@gmail.com  
 🎓 M.Sc. Electrical Engineering (graduating 2026)  
-🔗 [LinkedIn](https://www.linkedin.com/in/clifford-ondieki-tpm/) | [GitHub](https://github.com/omari91) www.cliffordomari.com
+🔗 [LinkedIn](https://www.linkedin.com/in/clifford-ondieki-tpm/) | [GitHub](https://github.com/omari91) www.cliffordomari.com 
+
+```
+```
