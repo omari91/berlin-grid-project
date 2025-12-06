@@ -75,7 +75,7 @@ Cycle Time: 47.91 ms
 ✓ Stability: Smooth control response verified under dynamic load conditions.
 ```
 
-**Note:** Initial validation against open-source upstream telemetry revealed a topological scope mismatch ($\rho < 0.2$), confirming that public datasets aggregate city-wide loads while sensors measure specific feeders. The architecture is designed to handle this data uncertainty robustly.
+**Note:** Initial validation against open-source upstream telemetry revealed a topological scope mismatch ($\rho < 0.7$), confirming that public datasets aggregate city-wide loads while sensors measure specific feeders. The architecture is designed to handle this data uncertainty robustly.
 
 -----
 
