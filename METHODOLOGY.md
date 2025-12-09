@@ -15,7 +15,7 @@ The simulation executes a continuous feedback loop at discrete time steps $t$:
 2.  **Decide:** Compute Control Action $u_t$ via Vectorized Fuzzy Logic.
 3.  **Actuate:** Update Physics Model with setpoints $P_{set} = P_{load} \times u_t$.
 4.  **Solve:** Execute AC Power Flow (Warm-Start Newton-Raphson).
-5.   **Feedback:** Extract the new system state $S_{t+1}$, comprising nodal voltages ($|V|$) and branch thermal loading percentages $I_{\%}$.
+5.   **Feedback:** Extract the new system state $S_{t+1}$, comprising nodal voltages ($|V|$) and branch thermal loading percentages, I_{\%}.
 
 
 **Latency Target:** The loop is benchmarked to complete in **< 20ms**, satisfying the Nyquist rate for 50Hz grid dynamics observability.
