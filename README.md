@@ -1,4 +1,4 @@
-# Berlin Grid Digital Twin — Enterprise Edition
+# Berlin Grid Real-Time Simulation Framework A Scalable Architecture for Probabilistic Edge Control
 
 **Author:** Clifford Ondieki  
 **Purpose:** Demonstrate scalable real-time edge control (Redispatch 3.0) and grid hosting-capacity analytics using real German grid data.  
