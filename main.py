@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.signal import lfilter
+from src.iec61850_layer import IEC61850Station
 
 # Try importing pandapower
 try:
@@ -76,6 +77,9 @@ class DataLayer:
 class PhysicalTwin:
     def __init__(self, feeder_length_km=5.0):
         self.net = self._build_model(feeder_length_km)
+                # IEC 61850 Substation Integration
+        self.iec61850 = IEC61850Station()
+        self.protection_trips = []
     
     def _build_model(self, length_km):
         if not PANDAPOWER_AVAILABLE: return None
@@ -105,7 +109,21 @@ class PhysicalTwin:
         try:
             # Warm-Start Newton-Raphson
             pp.runpp(self.net, algorithm='nr', init_vm_pu="results")
-            return self.net.res_trafo.loading_percent.max(), self.net.res_bus.vm_pu.min()
+                        
+            # IEC 61850: Process SCADA cycle
+            measurements, tripped = self.iec61850.process_scada_cycle(
+                load_mw=active_power_mw,
+                voltage_pu=self.net.res_bus.vm_pu.min()
+            )
+            
+            if tripped:
+                self.protection_trips.append({
+                    'time': len(self.protection_trips),
+                    'voltage': self.net.res_bus.vm_pu.min(),
+                    'load': active_power_mw
+                })
+            
+            loading = return self.net.res_trafo.loading_percent.ma), self.net.res_bus.vm_pu.min()
         except:
             return 999.9, 0.0
 
@@ -257,5 +275,58 @@ if __name__ == "__main__":
     
     # 5. Ablation
     run_controller_ablation(data)
+
+    def run_iec61850_demonstration(df):
+    """
+    Demonstrates IEC 61850 substa
     
-    print(f"\n✅ Optimization Complete. Artifacts in '{OUTPUT_DIR}/'")
+        # 6. IEC 61850 Demonstration
+    run_iec61850_demonstration(data)tion automation integration
+    Shows: MMS monitoring + GOOSE protection + Logical Nodes
+    """
+    print("\n[IEC 61850] 🏭 Running Substation Integration Demo...")
+    if not PANDAPOWER_AVAILABLE: return
+    
+    twin = PhysicalTwin(feeder_length_km=12.0)  # Long line = voltage stress
+    loads = df['Net_Load_MW'].values[:100]
+    
+    # Add voltage stress scenarios
+    stress_loads = np.concatenate([loads, np.array([55, 58, 62, 65])])
+    
+    voltages = []
+    protection_events = []
+    
+    for i, load in enumerate(stress_loads):
+        loading, voltage = twin.step(load)
+        voltages.append(voltage)
+        
+        # Check if protection operated
+        if twin.iec61850.pdis.data_objects['Op']:
+            protection_events.append(i)
+    
+    # Visualization
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8))
+    
+    # Plot 1: Voltage Profile with Protection Events
+    ax1.plot(voltages, label='Measured Voltage', color='blue', linewidth=2)
+    ax1.axhline(0.90, color='red', ls='--', label='Protection Threshold')
+    for event in protection_events:
+        ax1.axvline(event, color='red', alpha=0.3)
+    ax1.set_ylabel('Voltage (p.u.)')
+    ax1.set_title('IEC 61850 PDIS Protection Response')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Plot 2: Logical Node Data Flow
+    ax2.plot(stress_loads, label='Load (MMXU.TotW)', color='green')
+    ax2.set_ylabel('Active Power (MW)')
+    ax2.set_xlabel('Time Step')
+    ax2.set_title('MMS Communication: SCADA Monitoring')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_DIR, "iec61850_demo.png"))
+    
+    print(f"  ✅ Protection Operations: {len(protection_events)}")
+    print(f"  📊 Logical Nodes Active: MMXU (Measurement), PDIS (Protection), XCBR (Breaker)")print(f"\n✅ OptimizatioAll experiments complete including IEC 61850 integration")
