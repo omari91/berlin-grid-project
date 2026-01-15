@@ -1,4 +1,12 @@
-# Berlin Grid Real-Time Simulation Framework A Scalable Architecture for Probabilistic Edge Control
+# Berlin Grid Real-Time Simulation Framework
+
+![Python](https://img.shields.io/badge/python-3.9%2B-blue?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+![GitHub Actions](https://img.shields.io/github/actions/workflow/status/omari91/berlin-grid-project/ci.yml?branch=main&label=CI%2FCD&logo=github)
+![Code Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
+![Stars](https://img.shields.io/github/stars/omari91/berlin-grid-project?style=social)
+
+## A Scalable Architecture for Probabilistic Edge Control
 
 **Author:** Clifford Ondieki  
 **Purpose:** Demonstrate scalable real-time edge control (Redispatch 3.0) and grid hosting-capacity analytics using real German grid data.  
