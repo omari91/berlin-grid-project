@@ -22,6 +22,32 @@ This repository implements a **streaming digital twin** with real-time validatio
 - CI/CD pipeline (pytest, mypy, Docker)
 - Comprehensive documentation (METHODOLOGY.md)
 
+
+### Substation Integration Layer
+
+The digital twin interfaces with real substation equipment via **IEC 61850** protocols:
+
+#### Communication Architecture
+- **MMS (Manufacturing Message Specification)**: Real-time data acquisition from bay controllers
+  - Used for: Status monitoring, setpoint adjustments, historical data retrieval
+  - Implementation: Client-server model for SCADA integration
+
+- **GOOSE (Generic Object Oriented Substation Event)**: 
+  - Fast protection coordination (<4ms latency)
+  - Peer-to-peer multicast for critical signals
+  - Example: Breaker interlocking, busbar protection schemes
+
+- **Logical Nodes**: Standardized device modeling
+  - XCBR (Circuit Breaker), MMXU (Measurement), PDIS (Distance Protection)
+  - Ensures vendor-agnostic interoperability
+
+#### HVDC-Specific Integration
+For converter station automation:
+- **ZRCT/ZINV**: Rectifier/Inverter control logical nodes
+- **YLTC**: Tap changer position for transformer control
+- **Process bus integration** for valve monitoring (Sampled Values @ 4kHz)
+
+**Technical Keywords**: Substation Configuration Language (SCL), IED configuration, Station Bus vs Process Bus
 ---
 
 ## ⏱️ Real-Time Performance
