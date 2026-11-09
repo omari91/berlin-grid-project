@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.signal import lfilter
 from src.iec61850_layer import IEC61850Station
+from src.resilience import SolverCircuitBreaker
 
 # Try importing pandapower
 try:
@@ -74,12 +75,39 @@ class DataLayer:
         return df
 
 # --- LAYER 2: PHYSICS ENGINE ---
+class StepResult(tuple):
+    """Result from PhysicalTwin.step, backward compatible with (loading, voltage) 2-tuple."""
+    def __new__(cls, loading_percent: float, voltage_min_pu: float, curtailed_setpoint_mw: float, fallback_active: bool = False):
+        return super().__new__(cls, (loading_percent, voltage_min_pu))
+
+    def __init__(self, loading_percent: float, voltage_min_pu: float, curtailed_setpoint_mw: float, fallback_active: bool = False):
+        self.loading_percent = float(loading_percent)
+        self.voltage_min_pu = float(voltage_min_pu)
+        self.curtailed_setpoint_mw = float(curtailed_setpoint_mw)
+        self.fallback_active = bool(fallback_active)
+
+    def __repr__(self) -> str:
+        return (
+            f"StepResult(loading={self.loading_percent:.2f}%, "
+            f"voltage={self.voltage_min_pu:.4f} pu, "
+            f"curtailed_setpoint={self.curtailed_setpoint_mw:.1f} MW"
+            f"{', fallback_active=True' if self.fallback_active else ''})"
+        )
+
+
 class PhysicalTwin:
     def __init__(self, feeder_length_km=5.0):
         self.net = self._build_model(feeder_length_km)
-                # IEC 61850 Substation Integration
+        # IEC 61850 Substation Integration
         self.iec61850 = IEC61850Station()
         self.protection_trips = []
+        # Resilience Circuit Breaker
+        self.circuit_breaker = SolverCircuitBreaker(
+            max_consecutive_failures=3,
+            recovery_timeout_s=5.0,
+            default_voltage_pu=1.00,
+            default_limit_mw=GLOBAL_TRAFO_LIMIT_MW,
+        )
     
     def _build_model(self, length_km):
         if not PANDAPOWER_AVAILABLE: return None
@@ -99,34 +127,45 @@ class PhysicalTwin:
         return net
 
     def step(self, active_power_mw):
-        if self.net is None: return 0.0, 1.0
+        if self.net is None:
+            return StepResult(0.0, 1.0, active_power_mw, False)
+
         load_indices = self.net.load[self.net.load['name'] == "Dynamic_Load"].index
         load_idx = load_indices[0] if len(load_indices) > 0 else 0
-        
-        # Update State
-        self.net.load.at[load_idx, 'p_mw'] = active_power_mw
-        self.net.load.at[load_idx, 'q_mvar'] = active_power_mw * 0.3 
-        
-        try:
+
+        def _solve():
+            # Update State
+            self.net.load.at[load_idx, 'p_mw'] = active_power_mw
+            self.net.load.at[load_idx, 'q_mvar'] = active_power_mw * 0.3 
             # Warm-Start Newton-Raphson
             pp.runpp(self.net, algorithm='nr', init_vm_pu="results", numba=False)
-                        
-            # IEC 61850: Process SCADA cycle
-            measurements, tripped = self.iec61850.process_scada_cycle(
-                load_mw=active_power_mw,
-                voltage_pu=self.net.res_bus.vm_pu.min()
-            )
-            
-            if tripped:
-                self.protection_trips.append({
-                    'time': len(self.protection_trips),
-                    'voltage': self.net.res_bus.vm_pu.min(),
-                    'load': active_power_mw
-                })
-            
-            return float(self.net.res_trafo.loading_percent.max()), float(self.net.res_bus.vm_pu.min())
-        except:
-            return 999.9, 0.0
+            return {
+                'trafo_loading_max_pct': float(self.net.res_trafo.loading_percent.max()),
+                'voltage_min_pu': float(self.net.res_bus.vm_pu.min()),
+                'curtailed_setpoint_mw': float(active_power_mw),
+            }
+
+        cb_res = self.circuit_breaker.execute(_solve, load_mw=active_power_mw)
+        loading = float(cb_res['trafo_loading_max_pct'])
+        v_min = float(cb_res['voltage_min_pu'])
+        curtailed_setpoint = float(cb_res.get('curtailed_setpoint_mw', active_power_mw))
+        fallback_active = bool(cb_res.get('fallback_active', 0.0))
+
+        # IEC 61850: Process SCADA cycle
+        measurements, tripped = self.iec61850.process_scada_cycle(
+            load_mw=curtailed_setpoint if fallback_active else active_power_mw,
+            voltage_pu=v_min
+        )
+
+        if tripped:
+            self.protection_trips.append({
+                'time': len(self.protection_trips),
+                'voltage': v_min,
+                'load': active_power_mw,
+                'curtailed_setpoint': curtailed_setpoint,
+            })
+
+        return StepResult(loading, v_min, curtailed_setpoint, fallback_active)
 
 # --- LAYER 3: CONTROLLERS ---
 class Controller:
