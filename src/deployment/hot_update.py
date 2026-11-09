@@ -6,10 +6,12 @@ Implements safe controller updates:
 3. Atomic swap at grid cycle boundary (< 100 µs duration)
 4. Guard metric evaluation with auto-rollback if metrics degrade > 10%
 """
+from __future__ import annotations
 from enum import Enum
 import time
 from typing import Any, Callable, Optional
 import numpy as np
+import numpy.typing as npt
 
 
 class UpdateState(str, Enum):
@@ -46,7 +48,7 @@ class HotUpdateManager:
         self.staged_version = version_tag
         self.state = UpdateState.STAGED
 
-    def warm_up(self, historical_loads: np.ndarray, n_ticks: int = 100) -> bool:
+    def warm_up(self, historical_loads: npt.NDArray[Any], n_ticks: int = 100) -> bool:
         """Run shadow evaluation to warm CPU caches and verify numerical sanity."""
         if self.staged_controller is None or self.state != UpdateState.STAGED:
             return False

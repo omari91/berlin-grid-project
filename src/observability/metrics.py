@@ -95,3 +95,4 @@ class GridMetricsCollector:
             "",
         ]
         return "\n".join(lines)
+

@@ -1,7 +1,9 @@
 """Core modular components for Berlin Grid Digital Twin."""
+from __future__ import annotations
 from typing import Any, Optional, Union
-import pandas as pd
 import numpy as np
+import numpy.typing as npt
+import pandas as pd
 import time
 
 try:
@@ -146,10 +148,10 @@ class Controller:
     
     def fuzzy_control(
         self,
-        load_mw: Union[float, np.ndarray],
+        load_mw: Union[float, npt.NDArray[Any]],
         k: float = 15.0,
         s_ref: float = 0.95
-    ) -> Union[float, np.ndarray]:
+    ) -> Union[float, npt.NDArray[Any]]:
         """Sigmoid-based fuzzy curtailment.
         
         Args:
@@ -168,7 +170,7 @@ class Controller:
             return float(res)
         return res
 
-    def hard_cutoff(self, load_mw: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def hard_cutoff(self, load_mw: Union[float, npt.NDArray[Any]]) -> Union[float, npt.NDArray[Any]]:
         """Binary hard limit curtailment."""
         res = np.minimum(load_mw, self.limit)
         if isinstance(load_mw, (int, float)):
@@ -180,7 +182,7 @@ class StochasticEngine:
     """AR(1) noise generation for Monte Carlo."""
     
     @staticmethod
-    def generate_ar1_noise(n: int, sigma: float, phi: float) -> np.ndarray:
+    def generate_ar1_noise(n: int, sigma: float, phi: float) -> npt.NDArray[Any]:
         """Generate Auto-Regressive AR(1) noise.
         
         Args:
@@ -191,7 +193,7 @@ class StochasticEngine:
         Returns:
             AR(1) noise array
         """
-        noise: np.ndarray = np.zeros(n, dtype=float)
+        noise: npt.NDArray[Any] = np.zeros(n, dtype=float)
         white_noise = np.random.normal(0, sigma * np.sqrt(1 - phi**2), n)
         
         for t in range(1, n):

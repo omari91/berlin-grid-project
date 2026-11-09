@@ -40,3 +40,4 @@ def test_metrics_collector_trip_and_breaker_open():
     prom_text = collector.generate_prometheus_text()
     assert 'grid_circuit_breaker_state{site="Berlin-02"} 2' in prom_text
     assert 'grid_protection_trips_total{site="Berlin-02"} 1' in prom_text
+
