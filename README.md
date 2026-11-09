@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue?logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![GitHub Actions](https://img.shields.io/github/actions/workflow/status/omari91/berlin-grid-project/ci.yml?branch=main&label=CI%2FCD&logo=github)
-![Code Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)
+![Code Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
 ![Stars](https://img.shields.io/github/stars/omari91/berlin-grid-project?style=social)
 
 ## A Scalable Architecture for Probabilistic Edge Control

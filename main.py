@@ -100,7 +100,8 @@ class PhysicalTwin:
 
     def step(self, active_power_mw):
         if self.net is None: return 0.0, 1.0
-        load_idx = pp.get_element_index(self.net, "load", "Dynamic_Load")
+        load_indices = self.net.load[self.net.load['name'] == "Dynamic_Load"].index
+        load_idx = load_indices[0] if len(load_indices) > 0 else 0
         
         # Update State
         self.net.load.at[load_idx, 'p_mw'] = active_power_mw
@@ -108,7 +109,7 @@ class PhysicalTwin:
         
         try:
             # Warm-Start Newton-Raphson
-            pp.runpp(self.net, algorithm='nr', init_vm_pu="results")
+            pp.runpp(self.net, algorithm='nr', init_vm_pu="results", numba=False)
                         
             # IEC 61850: Process SCADA cycle
             measurements, tripped = self.iec61850.process_scada_cycle(
@@ -123,7 +124,7 @@ class PhysicalTwin:
                     'load': active_power_mw
                 })
             
-            loading = return self.net.res_trafo.loading_percent.ma), self.net.res_bus.vm_pu.min()
+            return float(self.net.res_trafo.loading_percent.max()), float(self.net.res_bus.vm_pu.min())
         except:
             return 999.9, 0.0
 
@@ -257,31 +258,9 @@ def run_controller_ablation(df):
     plt.legend()
     plt.savefig(os.path.join(OUTPUT_DIR, "ablation.png"))
 
-if __name__ == "__main__":
-    print("=== DIGITAL TWIN (Optimized) ===")
-    
-    # 1. Load / Generate Data
-    data = DataLayer.load_and_clean(FILES_MAP)
-    
-    # 2. Real-Time Proof (Jitter)
-    streamer = StreamingDigitalTwin()
-    streamer.run_jitter_test()
-    
-    # 3. Hardware Benchmark (Throughput)
-    run_throughput_benchmark()
-    
-    # 4. Stochastic Physics
-    run_stochastic_physics_loop(data)
-    
-    # 5. Ablation
-    run_controller_ablation(data)
-
-    def run_iec61850_demonstration(df):
+def run_iec61850_demonstration(df):
     """
-    Demonstrates IEC 61850 substa
-    
-        # 6. IEC 61850 Demonstration
-    run_iec61850_demonstration(data)tion automation integration
+    Demonstrates IEC 61850 substation automation integration.
     Shows: MMS monitoring + GOOSE protection + Logical Nodes
     """
     print("\n[IEC 61850] 🏭 Running Substation Integration Demo...")
@@ -329,4 +308,28 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(OUTPUT_DIR, "iec61850_demo.png"))
     
     print(f"  ✅ Protection Operations: {len(protection_events)}")
-    print(f"  📊 Logical Nodes Active: MMXU (Measurement), PDIS (Protection), XCBR (Breaker)")print(f"\n✅ OptimizatioAll experiments complete including IEC 61850 integration")
+    print(f"  📊 Logical Nodes Active: MMXU (Measurement), PDIS (Protection), XCBR (Breaker)")
+
+if __name__ == "__main__":
+    print("=== DIGITAL TWIN (Optimized) ===")
+    
+    # 1. Load / Generate Data
+    data = DataLayer.load_and_clean(FILES_MAP)
+    
+    # 2. Real-Time Proof (Jitter)
+    streamer = StreamingDigitalTwin()
+    streamer.run_jitter_test()
+    
+    # 3. Hardware Benchmark (Throughput)
+    run_throughput_benchmark()
+    
+    # 4. Stochastic Physics
+    run_stochastic_physics_loop(data)
+    
+    # 5. Ablation
+    run_controller_ablation(data)
+    
+    # 6. IEC 61850 Demonstration
+    run_iec61850_demonstration(data)
+
+    print("\n✅ All experiments complete including IEC 61850 integration")

@@ -1,7 +1,9 @@
 """Core modular components for Berlin Grid Digital Twin."""
+from typing import Any, Optional, Union
 import pandas as pd
 import numpy as np
 import time
+
 try:
     import pandapower as pp
 except ImportError:
@@ -12,7 +14,7 @@ class DataLayer:
     """Handles Berlin grid data loading and cleaning."""
     
     @staticmethod
-    def clean_german_float(x):
+    def clean_german_float(x: Any) -> float:
         """Convert German float notation to Python float."""
         if pd.isna(x): 
             return 0.0
@@ -20,12 +22,15 @@ class DataLayer:
             clean = x.replace('.', '').replace(',', '.')
             try: 
                 return float(clean)
-            except: 
+            except (ValueError, TypeError): 
                 return 0.0
-        return float(x)
+        try:
+            return float(x)
+        except (ValueError, TypeError):
+            return 0.0
     
     @staticmethod
-    def load_berlin_data(data_dir='data'):
+    def load_berlin_data(data_dir: str = 'data') -> pd.DataFrame:
         """Load and clean Berlin grid CSV data."""
         files_map = {
             'Gen_MS_kW': f'{data_dir}/MS_Erzeugung.csv',
@@ -33,7 +38,7 @@ class DataLayer:
             'Grid_Import_MS_kW': f'{data_dir}/MS_Import.csv'
         }
         
-        dfs = []
+        dfs: list[pd.DataFrame] = []
         for col_name, filepath in files_map.items():
             df_temp = pd.read_csv(filepath, sep=';', decimal=',', thousands='.')
             df_temp['Datetime'] = pd.to_datetime(df_temp.iloc[:, 0], dayfirst=True)
@@ -55,10 +60,10 @@ class DataLayer:
 class PhysicalTwin:
     """AC power flow simulation using Pandapower."""
     
-    def __init__(self):
-        self.net = self._build_model()
+    def __init__(self) -> None:
+        self.net: Any = self._build_model()
     
-    def _build_model(self):
+    def _build_model(self) -> Any:
         """Create Berlin-like grid topology."""
         if pp is None:
             return None
@@ -110,7 +115,7 @@ class PhysicalTwin:
         
         return net
     
-    def run_power_flow(self, gen_mw, load_mw):
+    def run_power_flow(self, gen_mw: float, load_mw: float) -> Optional[dict[str, float]]:
         """Execute AC power flow and return voltage/loading results."""
         if self.net is None:
             return None
@@ -124,26 +129,31 @@ class PhysicalTwin:
         try:
             pp.runpp(self.net, algorithm='nr', numba=False)
             return {
-                'voltage_min_pu': self.net.res_bus['vm_pu'].min(),
-                'voltage_max_pu': self.net.res_bus['vm_pu'].max(),
-                'line_loading_max_pct': self.net.res_line['loading_percent'].max(),
-                'trafo_loading_max_pct': self.net.res_trafo['loading_percent'].max()
+                'voltage_min_pu': float(self.net.res_bus['vm_pu'].min()),
+                'voltage_max_pu': float(self.net.res_bus['vm_pu'].max()),
+                'line_loading_max_pct': float(self.net.res_line['loading_percent'].max()),
+                'trafo_loading_max_pct': float(self.net.res_trafo['loading_percent'].max())
             }
-        except Exception as e:
+        except Exception:
             return None
 
 
 class Controller:
     """Fuzzy logic controller with sigmoid smoothing."""
     
-    def __init__(self, limit_mw=100.0):
-        self.limit = limit_mw
+    def __init__(self, limit_mw: float = 100.0) -> None:
+        self.limit: float = float(limit_mw)
     
-    def fuzzy_control(self, load_mw, k=15, s_ref=0.95):
+    def fuzzy_control(
+        self,
+        load_mw: Union[float, np.ndarray],
+        k: float = 15.0,
+        s_ref: float = 0.95
+    ) -> Union[float, np.ndarray]:
         """Sigmoid-based fuzzy curtailment.
         
         Args:
-            load_mw: Current load in MW
+            load_mw: Current load in MW (scalar or numpy array)
             k: Steepness factor (higher = sharper transition)
             s_ref: Threshold stress level (0-1)
         
@@ -151,16 +161,26 @@ class Controller:
             Curtailed load in MW
         """
         stress = load_mw / self.limit
-        activation = 1 / (1 + np.exp(-k * (stress - s_ref)))
-        dimming = 1 - (activation * 0.20)  # Max 20% curtailment
-        return np.minimum(load_mw * dimming, self.limit)
+        activation = 1.0 / (1.0 + np.exp(-k * (stress - s_ref)))
+        dimming = 1.0 - (activation * 0.20)  # Max 20% curtailment
+        res = np.minimum(load_mw * dimming, self.limit)
+        if isinstance(load_mw, (int, float)):
+            return float(res)
+        return res
+
+    def hard_cutoff(self, load_mw: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        """Binary hard limit curtailment."""
+        res = np.minimum(load_mw, self.limit)
+        if isinstance(load_mw, (int, float)):
+            return float(res)
+        return res
 
 
 class StochasticEngine:
     """AR(1) noise generation for Monte Carlo."""
     
     @staticmethod
-    def generate_ar1_noise(n, sigma, phi):
+    def generate_ar1_noise(n: int, sigma: float, phi: float) -> np.ndarray:
         """Generate Auto-Regressive AR(1) noise.
         
         Args:
@@ -171,7 +191,7 @@ class StochasticEngine:
         Returns:
             AR(1) noise array
         """
-        noise = np.zeros(n)
+        noise: np.ndarray = np.zeros(n, dtype=float)
         white_noise = np.random.normal(0, sigma * np.sqrt(1 - phi**2), n)
         
         for t in range(1, n):

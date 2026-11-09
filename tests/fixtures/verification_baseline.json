@@ -1,0 +1,120 @@
+{
+  "physics_core": {
+    "load_0.1mw": {
+      "voltage_min_pu": 0.9934437454081732,
+      "voltage_max_pu": 1.0,
+      "line_loading_max_pct": 1.4178748856030714,
+      "trafo_loading_max_pct": 16.372208937605286
+    },
+    "load_0.5mw": {
+      "voltage_min_pu": 0.9905890525199986,
+      "voltage_max_pu": 1.0,
+      "line_loading_max_pct": 2.760939048545101,
+      "trafo_loading_max_pct": 31.880578057874192
+    },
+    "load_1.0mw": {
+      "voltage_min_pu": 0.9799824708336359,
+      "voltage_max_pu": 1.0,
+      "line_loading_max_pct": 8.511497213115234,
+      "trafo_loading_max_pct": 98.28230414397008
+    }
+  },
+  "physics_main": {
+    "load_10.0mw": {
+      "trafo_loading_pct": 16.413526752847748,
+      "voltage_min_pu": 1.0019051880342331
+    },
+    "load_30.0mw": {
+      "trafo_loading_pct": 51.823720411527184,
+      "voltage_min_pu": 0.9569032405356728
+    },
+    "load_45.0mw": {
+      "trafo_loading_pct": 81.31698644433781,
+      "voltage_min_pu": 0.9156160970629628
+    },
+    "load_55.0mw": {
+      "trafo_loading_pct": 103.11533657512413,
+      "voltage_min_pu": 0.8828277246955295
+    }
+  },
+  "controller": {
+    "stress_0.00": {
+      "load_mw": 0.0,
+      "curtailed_mw": 0.0,
+      "curtailment_pct": 0.0
+    },
+    "stress_0.50": {
+      "load_mw": 22.5,
+      "curtailed_mw": 22.49473720380725,
+      "curtailment_pct": 0.023390205301107397
+    },
+    "stress_0.80": {
+      "load_mw": 36.0,
+      "curtailed_mw": 35.313483852726414,
+      "curtailment_pct": 1.9069892979821843
+    },
+    "stress_0.95": {
+      "load_mw": 42.75,
+      "curtailed_mw": 38.475,
+      "curtailment_pct": 9.999999999999996
+    },
+    "stress_1.00": {
+      "load_mw": 45.0,
+      "curtailed_mw": 38.88739170742146,
+      "curtailment_pct": 13.583573983507872
+    },
+    "stress_1.05": {
+      "load_mw": 47.25,
+      "curtailed_mw": 39.52392119997007,
+      "curtailment_pct": 16.35148952387287
+    },
+    "stress_1.20": {
+      "load_mw": 54.0,
+      "curtailed_mw": 43.448155595028275,
+      "curtailment_pct": 19.54045260179949
+    },
+    "stress_1.50": {
+      "load_mw": 67.5,
+      "curtailed_mw": 45.0,
+      "curtailment_pct": 33.33333333333333
+    },
+    "stress_2.00": {
+      "load_mw": 90.0,
+      "curtailed_mw": 45.0,
+      "curtailment_pct": 50.0
+    }
+  },
+  "stochastic": {
+    "seed": 42,
+    "n_samples": 1000,
+    "sigma": 2.0,
+    "phi": 0.95,
+    "mean": 0.2498780620758735,
+    "std": 1.9758401873815845,
+    "lag1_autocorr": 0.9509619925758571,
+    "p5_pu": -2.944107692475038,
+    "p95_pu": 3.8192386955867086
+  },
+  "iec61850": {
+    "voltage_threshold_pu": 0.9,
+    "normal_voltage_pu": 0.95,
+    "normal_tripped": false,
+    "under_voltage_pu": 0.88,
+    "under_tripped": true,
+    "breaker_pos_after_trip": false,
+    "scada_cycle_fields": [
+      "TotW",
+      "TotVAr",
+      "PPV.phsA",
+      "A.phsA"
+    ]
+  },
+  "performance": {
+    "p50_jitter_us": 0.542,
+    "p99_jitter_us": 0.709,
+    "p99_9_jitter_us": 1.833,
+    "throughput_mops": 87.25,
+    "target_jitter_max_us": 10.0,
+    "min_throughput_mops": 10.0
+  }
+}

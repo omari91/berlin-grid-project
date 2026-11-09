@@ -5,20 +5,20 @@ Demonstrates how the digital twin interfaces with real substation equipment
 Author: Clifford Ondieki
 Reference: IEC 61850-7-4 (Logical Nodes), IEC 61850-8-1 (MMS), IEC 61850-9-2 (Sampled Values)
 """
-
+from typing import Any, Optional, Union
 import numpy as np
 
 
 class LogicalNode:
     """Base class for IEC 61850 Logical Nodes (function blocks)"""
-    def __init__(self, name):
-        self.name = name
-        self.data_objects = {}
+    def __init__(self, name: str) -> None:
+        self.name: str = name
+        self.data_objects: dict[str, Any] = {}
     
-    def update(self, **kwargs):
+    def update(self, **kwargs: Any) -> None:
         self.data_objects.update(kwargs)
     
-    def get(self, attribute):
+    def get(self, attribute: str) -> Optional[Any]:
         return self.data_objects.get(attribute, None)
 
 
@@ -28,22 +28,24 @@ class MMXU(LogicalNode):
     Used for: Real-time voltage, current, power measurements
     Communication: MMS (Manufacturing Message Specification)
     """
-    def __init__(self, name="MMXU1"):
+    def __init__(self, name: str = "MMXU1") -> None:
         super().__init__(name)
         # IEC 61850 Data Objects
-        self.data_objects = {
+        self.data_objects: dict[str, Any] = {
             'TotW': 0.0,      # Total Active Power (MW)
             'TotVAr': 0.0,    # Total Reactive Power (MVAr)
             'PPV.phsA': 1.0,  # Phase A Voltage (p.u.)
             'A.phsA': 0.0,    # Phase A Current (A)
         }
     
-    def read_from_scada(self, active_mw, reactive_mvar, voltage_pu):
+    def read_from_scada(
+        self, active_mw: float, reactive_mvar: float, voltage_pu: float
+    ) -> dict[str, Any]:
         """MMS Client-Server: Request measurements from bay controller"""
         self.update(
-            TotW=active_mw,
-            TotVAr=reactive_mvar,
-            **{'PPV.phsA': voltage_pu}
+            TotW=float(active_mw),
+            TotVAr=float(reactive_mvar),
+            **{'PPV.phsA': float(voltage_pu)}
         )
         return self.data_objects
 
@@ -54,19 +56,19 @@ class XCBR(LogicalNode):
     Controls: Breaker position (open/close)
     Communication: GOOSE (Generic Object Oriented Substation Event)
     """
-    def __init__(self, name="XCBR1"):
+    def __init__(self, name: str = "XCBR1") -> None:
         super().__init__(name)
-        self.data_objects = {
+        self.data_objects: dict[str, Any] = {
             'Pos.stVal': True,    # Position: True=Closed, False=Open
             'BlkOpn': False,       # Block Opening command
         }
     
-    def send_trip_command(self):
+    def send_trip_command(self) -> None:
         """GOOSE: Fast peer-to-peer signal (<4ms latency)"""
         self.update(**{'Pos.stVal': False})
         print(f"🔴 [{self.name}] GOOSE Trip Signal Sent - Breaker OPEN")
     
-    def send_close_command(self):
+    def send_close_command(self) -> None:
         self.update(**{'Pos.stVal': True})
         print(f"🟢 [{self.name}] GOOSE Close Signal - Breaker CLOSED")
 
@@ -77,14 +79,14 @@ class PDIS(LogicalNode):
     Monitors: Voltage violations, triggers protection schemes
     Communication: GOOSE for trip signals
     """
-    def __init__(self, name="PDIS1"):
+    def __init__(self, name: str = "PDIS1") -> None:
         super().__init__(name)
-        self.data_objects = {
+        self.data_objects: dict[str, Any] = {
             'Str': False,       # Protection Started
             'Op': False,        # Protection Operated (trip)
         }
     
-    def evaluate_protection(self, voltage_pu, threshold=0.90):
+    def evaluate_protection(self, voltage_pu: float, threshold: float = 0.90) -> bool:
         """Protection logic: Trip if voltage drops below threshold"""
         if voltage_pu < threshold:
             self.update(Str=True, Op=True)
@@ -104,13 +106,15 @@ class IEC61850Station:
     - GOOSE: Peer-to-peer multicast for protection (<4ms)
     - Sampled Values: Process bus measurements (not implemented here)
     """
-    def __init__(self):
-        self.mmxu = MMXU("MMXU_Transformer")
-        self.xcbr = XCBR("XCBR_Feeder")
-        self.pdis = PDIS("PDIS_Undervoltage")
-        self.protection_log = []
+    def __init__(self) -> None:
+        self.mmxu: MMXU = MMXU("MMXU_Transformer")
+        self.xcbr: XCBR = XCBR("XCBR_Feeder")
+        self.pdis: PDIS = PDIS("PDIS_Undervoltage")
+        self.protection_log: list[dict[str, Any]] = []
     
-    def process_scada_cycle(self, load_mw, voltage_pu):
+    def process_scada_cycle(
+        self, load_mw: float, voltage_pu: float
+    ) -> tuple[dict[str, Any], bool]:
         """
         MMS Protocol: Client-server communication for monitoring
         Typical cycle time: 100-1000ms

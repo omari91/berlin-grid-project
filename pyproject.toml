@@ -8,3 +8,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "regression: regression tests against Phase 1 baselines",
+    "benchmark: performance and real-time latency benchmarks",
+    "chaos: resilience and fault-injection chaos tests"
+]
+addopts = "--strict-markers"
